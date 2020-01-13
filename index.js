@@ -49,9 +49,9 @@ server.get("/api/users", (req, res) => {
 //GET users by ID
 server.get("/api/users/:id", (req, res) => {
   Users.findById(req.params.id)
-    .then(user => {
-      if (user) {
-        res.status(200).json(user);
+    .then(count => {
+      if (count && count > 0) {
+        res.status(200).json({ message: "The user was deleted." });
       } else {
         res
           .status(404)
@@ -67,7 +67,50 @@ server.get("/api/users/:id", (req, res) => {
 });
 
 //DELETE a user
-// server.delete();
+server.delete("/api/users/:id", (req, res) => {
+  Users.remove(req.params.id)
+    .then(user => {
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res
+          .status(404)
+          .json({ message: "The user with the specified ID does not exist." });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ errorMessage: "The user could not be removed" });
+    });
+});
+
+//PUT update an existing user
+server.put("/api/users/:id", (req, res) => {
+  const { name, bio } = req.body;
+
+  if (!name || !bio) {
+    res
+      .status(400)
+      .json({ errorMessage: "Please provide name and bio for the user." });
+  } else {
+    Users.update(req.params.id, req.body)
+      .then(user => {
+        if (user) {
+          res.status(200).json(user);
+        } else {
+          res.status(404).json({
+            message: "The user with the specified ID does not exist."
+          });
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({
+          errorMessage: "The user information could not be modified."
+        });
+      });
+  }
+});
 
 server.listen(port, () => {
   console.log(`\n Server lisening on Port:${port}`);
